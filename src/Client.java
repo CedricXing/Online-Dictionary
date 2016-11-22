@@ -46,7 +46,7 @@ public class Client extends JFrame{
     }
 
     private void init_search_panel(){
-        search_panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        search_panel = new JPanel(new FlowLayout(FlowLayout.RIGHT,5,10));
 
         search_field = new JTextField(default_string,20);//set default string
         search_field.setForeground(Color.black);//set color
@@ -64,6 +64,7 @@ public class Client extends JFrame{
         });
 
         search_label = new JLabel(search_icon);
+        search_label.setBorder(line_border);
         search_label.addMouseListener(new MouseListener() {
             public void mouseClicked(MouseEvent e){
                 System.out.println(search_field.getText());
