@@ -40,9 +40,11 @@ public class Server {
 
 class HandleClient implements Runnable{
     private Socket socket;
+    private DataBaseConnectivity dataBaseConnectivity;
 
     public HandleClient(Socket socket){
         this.socket = socket;
+        dataBaseConnectivity = new DataBaseConnectivity();
     }
 
     @Override
@@ -55,7 +57,7 @@ class HandleClient implements Runnable{
                 String mess = (String)inputFromClient.readObject();
                 String []info = mess.split("[:]");
                 if(info[0].equals("register")){
-
+                    register(info[1], info[2]);
                 }
             }
         }
@@ -63,4 +65,10 @@ class HandleClient implements Runnable{
             System.out.println(e);
         }
     }
+
+    public boolean register(String name, String password) {
+        int ID = dataBaseConnectivity.distrubuteID();
+        dataBaseConnectivity.insertUserData(ID, name, password);
+    }
+
 }

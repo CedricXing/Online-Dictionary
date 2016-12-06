@@ -2,6 +2,7 @@
  * Created by FelixXiao on 2016/11/21.
  */
 import java.sql.*;
+import java.util.ConcurrentModificationException;
 
 
 public class DataBaseConnectivity {
@@ -9,12 +10,15 @@ public class DataBaseConnectivity {
 //        DataBaseConnectivity DBC = new DataBaseConnectivity();
 //        System.out.println(DBC.getPasswordByID(117));
 //        DBC.insertUserData(114,"wu","wu");
-//
+//        System.out.println(DBC.distrubuteID());
 //    }
+
+
+    private Connection connection;
 
     //constructor
     public DataBaseConnectivity() {
-
+        connection = getConnection();
     }
     //Connect to Database
     private Connection getConnection() {
@@ -25,7 +29,7 @@ public class DataBaseConnectivity {
             System.out.println("Driver loaded");
 
             //Establish a connection
-            String url = "jdbc:mysql://localhost:3306/OnlineDictionaryUsers?useSSL=true";
+            String url = "jdbc:mysql://localhost:3306/OnlineDictionary?useSSL=true";
             conn = DriverManager.getConnection(url, "root", "960805");
             System.out.println("Database connected");
 
@@ -38,7 +42,6 @@ public class DataBaseConnectivity {
 
     //Insert User data
     public void insertUserData(int ID, String name, String password) {
-        Connection connection = getConnection();
         try {
             String sql = "insert into Users(ID,name,password)" + "values (?,?,?)";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
@@ -55,7 +58,6 @@ public class DataBaseConnectivity {
 
     //Get user name by ID
     public String getNameByID(int ID) {
-        Connection connection = getConnection();
         try {
             String sql = "select name from Users where ID = ?";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
@@ -72,7 +74,6 @@ public class DataBaseConnectivity {
 
     //Get user password by ID
     public String getPasswordByID(int ID) {
-        Connection connection = getConnection();
         try {
             String sql = "select password from Users where ID = ?";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
@@ -85,5 +86,19 @@ public class DataBaseConnectivity {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public int distrubuteID() {
+        try {
+            String sql = "select ID from Users order by ID desc";
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery(sql);
+            if(resultSet.next())
+                return resultSet.getInt(1) + 1;
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
     }
 }
