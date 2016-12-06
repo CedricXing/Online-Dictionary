@@ -27,31 +27,30 @@ public class Client extends JFrame{
     private JTextField search_field;//Panel to input words
     private JLabel search_label;
     private ImageIcon search_icon = new ImageIcon("search.png");//icon
-    //private ImageIcon add_client_icon = new ImageIcon("add_client.png");//icon
 
     private JPanel main_panel;//Panel to Display explaination
     private JPanel explaination_panel;
-    private JPanel check_box;
-    private JPanel jp_biying;
-    private JPanel biying_up_panel;
-    private JTextArea trans_field_biying;
-    private JLabel like_label_biying;
-    private JLabel label_biying = new JLabel("Bing");
-    private JPanel jp_youdao;
-    private JPanel youdao_up_panel;
-    private JTextArea trans_field_youdao;
-    private JLabel like_label_youdao;
-    private JLabel label_youdao = new JLabel("Youdao");
-    private JPanel jp_jinshan;
-    private JPanel jinshan_up_panel;
-    private JTextArea trans_field_jinshan;
-    private JLabel like_label_jinshan;
-    private JLabel label_jinshan = new JLabel("Jinshan");
+    private JPanel first_jp;
+    private JPanel first_up_panel;
+    private JTextArea trans_field_first;
+    private JLabel like_label_first;
+    private JLabel label_first = new JLabel("");
+    private JPanel second_jp;
+    private JPanel second_up_panel;
+    private JTextArea trans_field_second;
+    private JLabel like_label_second;
+    private JLabel label_second = new JLabel("");
+    private JPanel third_jp;
+    private JPanel third_up_panel;
+    private JTextArea trans_field_third;
+    private JLabel like_label_third;
+    private JLabel label_third = new JLabel("");
     private JCheckBox jch_biying;
     private JCheckBox jch_youdao;
     private JCheckBox jch_jinshan;
 
     private ImageIcon like_icon = new ImageIcon("like.png");
+    private ImageIcon like_icon2 = new ImageIcon("like2.png");
 
     private Border line_border = new LineBorder(Color.LIGHT_GRAY,1);
 
@@ -65,9 +64,6 @@ public class Client extends JFrame{
     OnlineTranslation onlineTranslation;
 
     public Client(){
-        //this.to_server = to_server;
-        //this.from_server = from_server;
-
         init_search_panel();
         init_set_panel();
         init_main_panel();
@@ -95,7 +91,11 @@ public class Client extends JFrame{
     }
 
     private void init_set_panel(){
-        set_panel = new JPanel(new FlowLayout(FlowLayout.RIGHT,5,10));
+        jch_biying = new JCheckBox("Bing");
+        jch_jinshan = new JCheckBox("JinShan");
+        jch_youdao = new JCheckBox("YouDao");
+
+        set_panel = new JPanel(new FlowLayout(FlowLayout.RIGHT,10,10));
 
         set_label = new JLabel(set_icon);
         user_label = new JLabel(user_icon);
@@ -105,19 +105,19 @@ public class Client extends JFrame{
             public void mouseClicked(MouseEvent e) {
                 new Client_Login(to_server,from_server);
             }
-
             @Override
             public void mousePressed(MouseEvent e) {}
-
             @Override
             public void mouseReleased(MouseEvent e) {}
-
             @Override
             public void mouseEntered(MouseEvent e) {}
-
             @Override
             public void mouseExited(MouseEvent e) {}
         });
+
+        set_panel.add(jch_biying);
+        set_panel.add(jch_jinshan);
+        set_panel.add(jch_youdao);
 
         set_panel.add(user_label);
         set_panel.add(set_label);
@@ -179,54 +179,100 @@ public class Client extends JFrame{
         main_panel = new JPanel();
         main_panel.setLayout(new BorderLayout(0,0));
 
-        check_box = new JPanel(new FlowLayout(FlowLayout.CENTER,180,10));
-        jch_biying = new JCheckBox("BiYing");
-        jch_jinshan = new JCheckBox("JinShan");
-        jch_youdao = new JCheckBox("YouDao");
-
-        check_box.add(jch_biying);
-        check_box.add(jch_jinshan);
-        check_box.add(jch_youdao);
-        check_box.setBorder(line_border);
-
         explaination_panel = new JPanel(new GridLayout(1,1));
 
-        jp_biying = new JPanel(new BorderLayout());jp_biying.setBorder(line_border);
-        jp_youdao = new JPanel(new BorderLayout());jp_youdao.setBorder(line_border);
-        jp_jinshan = new JPanel(new BorderLayout());jp_jinshan.setBorder(line_border);
+        first_jp = new JPanel(new BorderLayout());first_jp.setBorder(line_border);
+        second_jp = new JPanel(new BorderLayout());second_jp.setBorder(line_border);
+        third_jp = new JPanel(new BorderLayout());third_jp.setBorder(line_border);
 
-        trans_field_biying = new JTextArea();
-        trans_field_jinshan = new JTextArea();
-        trans_field_youdao = new JTextArea();
+        trans_field_first = new JTextArea();
+        trans_field_first.setLineWrap(true);
+        trans_field_third = new JTextArea();
+        trans_field_third.setLineWrap(true);
+        trans_field_second = new JTextArea();
+        trans_field_second.setLineWrap(true);
 
-        biying_up_panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        youdao_up_panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        jinshan_up_panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        first_up_panel = new JPanel(new FlowLayout(FlowLayout.CENTER,20,5));
+        second_up_panel = new JPanel(new FlowLayout(FlowLayout.CENTER,20,5));
+        third_up_panel = new JPanel(new FlowLayout(FlowLayout.CENTER,20,5));
 
-        like_label_biying = new JLabel(like_icon);
-        like_label_jinshan = new JLabel(like_icon);
-        like_label_youdao = new JLabel(like_icon);
+        like_label_first = new JLabel(like_icon);
+        like_label_third = new JLabel(like_icon);
+        like_label_second = new JLabel(like_icon);
 
-        biying_up_panel.add(label_biying);
-        biying_up_panel.add(like_label_biying);
-        youdao_up_panel.add(label_youdao);
-        youdao_up_panel.add(like_label_youdao);
-        jinshan_up_panel.add(label_jinshan);
-        jinshan_up_panel.add(like_label_jinshan);
+        like_label_first.addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if(like_label_first.getIcon() == like_icon) {
+                    like_label_first.setIcon(like_icon2);
+                    user_liked(1);
+                }
+                else if(like_label_first.getIcon() == like_icon2){
+                    like_label_first.setIcon(like_icon);
+                    user_liked_canceled(1);
+                }
+            }
+            @Override
+            public void mousePressed(MouseEvent e) {}
+            @Override
+            public void mouseReleased(MouseEvent e) {}
+            @Override
+            public void mouseEntered(MouseEvent e) {}
+            @Override
+            public void mouseExited(MouseEvent e) {}
+        });
 
-        jp_biying.add(biying_up_panel,BorderLayout.NORTH);
-        jp_biying.add(trans_field_biying,BorderLayout.CENTER);
-        jp_youdao.add(youdao_up_panel,BorderLayout.NORTH);
-        jp_youdao.add(trans_field_youdao,BorderLayout.CENTER);
-        jp_jinshan.add(jinshan_up_panel,BorderLayout.NORTH);
-        jp_jinshan.add(trans_field_jinshan,BorderLayout.CENTER);
+        like_label_second.addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                like_label_second.setIcon(like_icon2);
+                user_liked(2);
+            }
+            @Override
+            public void mousePressed(MouseEvent e) {}
+            @Override
+            public void mouseReleased(MouseEvent e) {}
+            @Override
+            public void mouseEntered(MouseEvent e) {}
+            @Override
+            public void mouseExited(MouseEvent e) {}
+        });
 
-        explaination_panel.add(jp_biying);
-        explaination_panel.add(jp_jinshan);
-        explaination_panel.add(jp_youdao);
+        like_label_third.addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                like_label_third.setIcon(like_icon2);
+                user_liked(3);
+            }
+            @Override
+            public void mousePressed(MouseEvent e) {}
+            @Override
+            public void mouseReleased(MouseEvent e) {}
+            @Override
+            public void mouseEntered(MouseEvent e) {}
+            @Override
+            public void mouseExited(MouseEvent e) {}
+        });
+
+        first_up_panel.add(label_first);
+        first_up_panel.add(like_label_first);
+        second_up_panel.add(label_second);
+        second_up_panel.add(like_label_second);
+        third_up_panel.add(label_third);
+        third_up_panel.add(like_label_third);
+
+        first_jp.add(first_up_panel,BorderLayout.NORTH);
+        first_jp.add(new JScrollPane(trans_field_first),BorderLayout.CENTER);
+        second_jp.add(second_up_panel,BorderLayout.NORTH);
+        second_jp.add(new JScrollPane(trans_field_second),BorderLayout.CENTER);
+        third_jp.add(third_up_panel,BorderLayout.NORTH);
+        third_jp.add(new JScrollPane(trans_field_third),BorderLayout.CENTER);
+
+        explaination_panel.add(first_jp);
+        explaination_panel.add(third_jp);
+        explaination_panel.add(second_jp);
 
 
-        main_panel.add(check_box,BorderLayout.NORTH);
         main_panel.add(explaination_panel,BorderLayout.CENTER);
 
         main_panel.setBorder(line_border);
@@ -238,12 +284,22 @@ public class Client extends JFrame{
         ArrayList<String> trans_jinshan = onlineTranslation.icibaTranslation(search_field.getText());
 
 
+        StringBuffer result_youdao = new StringBuffer("");
         for(int i = 0;i < trans_youdao.size();++ i){
-            System.out.println(trans_youdao.get(i));
+            result_youdao.append(trans_youdao.get(i)+'\n');
         }
+        trans_field_first.setText(result_youdao.toString());
         //System.out.println(trans_youdao);
         //System.out.println(trans_biying);
         //System.out.println(trans_jinshan);
+    }
+
+    private void user_liked(int index){
+
+    }
+
+    private void user_liked_canceled(int index){
+
     }
 
     public static void main(String[] args){
