@@ -8,7 +8,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class Server {
+    //
     public Server(){
+
         try{
             ServerSocket serversocket = new ServerSocket(8000);//port number 8000
 
