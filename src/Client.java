@@ -289,9 +289,6 @@ public class Client extends JFrame{
             result_youdao.append(trans_youdao.get(i)+'\n');
         }
         trans_field_first.setText(result_youdao.toString());
-        //System.out.println(trans_youdao);
-        //System.out.println(trans_biying);
-        //System.out.println(trans_jinshan);
     }
 
     private void user_liked(int index){

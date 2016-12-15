@@ -65,7 +65,7 @@ public class Client_Login extends JFrame{
         this.setTitle("Online Dictionary");
         this.setSize(400,300);
         this.setLocationRelativeTo(null);
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        //this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setVisible(true);
     }
 
@@ -234,7 +234,12 @@ public class Client_Login extends JFrame{
     }
 
     private void password_listener(){
-
+        user_password.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                login();
+            }
+        });
     }
 
     private void password_confirmed_listener(){
@@ -255,6 +260,24 @@ public class Client_Login extends JFrame{
             to_server.flush();
         }
         catch (IOException e){
+            System.out.println(e);
+        }
+    }
+
+    private void login(){
+        try{
+            String login_mess = new String("login:" + user_name.getText() + ":" + user_password.getText());
+            to_server.writeObject(login_mess);
+            to_server.flush();
+            String mess = (String)from_server.readObject();
+            if(mess.equals("true")){
+
+            }
+            else{
+                JOptionPane.showMessageDialog(null,"Wrong!");
+            }
+        }
+        catch (Exception e){
             System.out.println(e);
         }
     }

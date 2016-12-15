@@ -57,7 +57,14 @@ class HandleClient implements Runnable{
                 String mess = (String)inputFromClient.readObject();
                 String []info = mess.split("[:]");
                 if(info[0].equals("register")){
-                    register(info[1], info[2]);
+                    if(register(info[1], info[2])){
+
+                    }
+                }
+                if(info[0].equals("login")){
+                    String buf = new String("false");
+                    outputToClient.writeObject(buf);
+                    outputToClient.flush();
                 }
             }
         }
@@ -69,6 +76,7 @@ class HandleClient implements Runnable{
     public boolean register(String name, String password) {
         int ID = dataBaseConnectivity.distrubuteID();
         dataBaseConnectivity.insertUserData(ID, name, password);
+        return true;
     }
 
 }
