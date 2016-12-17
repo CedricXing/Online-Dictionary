@@ -14,6 +14,7 @@ import javax.swing.border.*;
 
 public class Client extends JFrame{
     private String client_name = new String("");
+    private String client_id = new String("");
 
     private JPanel up_panel;//up panel
 
@@ -65,6 +66,10 @@ public class Client extends JFrame{
     private Border line_border = new LineBorder(Color.LIGHT_GRAY,1);
 
     private Font font1 = new Font("Times",Font.BOLD,15);
+    private Font font2 = new Font("Times",Font.PLAIN,15);
+
+    private Color color = new Color(40,130,200);
+    private Color color1 = new Color(150,100,200);
 
     final private String default_string = new String("search...");
 
@@ -84,6 +89,8 @@ public class Client extends JFrame{
     int panel_num = 0;
 
     String current_word;
+
+    ArrayList<String> friends = new ArrayList<String>();
 
     public Client(){
         init_search_panel();
@@ -114,6 +121,7 @@ public class Client extends JFrame{
                         if (reply_processed[1].equals("success")) {
                             JOptionPane.showMessageDialog(null, "Register Success! Your ID is " + reply_processed[2] + " ,please remember it!");
                             is_online = true;
+                            client_id = new String(reply_processed[2]);
                             client_name = new String(reply_processed[3]);
                             this.setTitle("Welcome " + client_name);
                             client_login.dispose();
@@ -125,9 +133,13 @@ public class Client extends JFrame{
                         if(reply_processed[1].equals("success")) {
                             is_online = true;
                             JOptionPane.showMessageDialog(null, "Login success!");
-                            client_name = new String(reply_processed[2]);
+                            client_id = new String(reply_processed[2]);
+                            client_name = new String(reply_processed[3]);
                             this.setTitle("Welcome " + client_name);
                             client_login.dispose();
+                            String mes = new String("friends:" + client_id);
+                            to_server.writeObject(mes);
+                            to_server.flush();
                         }
                         else {
                             JOptionPane.showMessageDialog(null, "ID or password Wrong!");
@@ -135,6 +147,54 @@ public class Client extends JFrame{
                     }
                     else if(reply_processed[0].equals("search")){
                         display_search_result(reply_processed);
+                    }
+                    else if(reply_processed[0].equals("addrequest")){
+                        Object[] options = { "确认添加", "拒绝添加" };
+                        int option = JOptionPane.showOptionDialog(null, "好友添加请求：" + reply_processed[1] + " " + reply_processed[2],
+                                "好友添加请求", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE,user_icon,
+                                options, options[0]);
+                        if(option == 0){
+                            //friends.add("ID:" + reply_processed[1] + "     昵称:" + reply_processed[2]);
+                            String mes = new String("addconfirm:agree:" + client_id + ":" + reply_processed[1]);
+                            to_server.writeObject(mes);
+                            to_server.flush();
+                            String mes1 = new String("friends:" + client_id);
+                            to_server.writeObject(mes1);
+                            to_server.flush();
+                        }
+                        else {
+                            String mes = new String("addconfirm:refuse:" + client_id + ":" + reply_processed[1]);
+                            to_server.writeObject(mes);
+                            to_server.flush();
+                        }
+                    }
+                    else if(reply_processed[0].equals("addconfirm")){
+                        if(reply_processed[1].equals("agree")){
+                            //friends.add("ID:" + reply_processed[2] + "     昵称:" + reply_processed[3]);
+                            JOptionPane.showMessageDialog(null, "添加" + reply_processed[2] + " " + reply_processed[3] + "成功！");
+                            String mes = new String("friends:" + client_id);
+                            to_server.writeObject(mes);
+                            to_server.flush();
+                        }
+                        else{
+                            JOptionPane.showMessageDialog(null, reply_processed[2] + " " + reply_processed[3] + "拒绝您的添加！");
+                        }
+                    }
+                    else if(reply_processed[0].equals("add")){
+                        if(reply_processed[1].equals("fail1")){
+                            JOptionPane.showMessageDialog(null, "该好友不存在！");
+                        }
+                        else if(reply_processed[1].equals("fail2")){
+                            JOptionPane.showMessageDialog(null,"不能重复添加同一好友！");
+                        }
+                    }
+                    else if(reply_processed[0].equals("friends")){
+                        for(int i = 0;i < friends.size();++ i)
+                            friends.remove(i);
+
+                        for(int i = 1;i < reply_processed.length - 1;i += 2){
+                            friends.add("ID:" + reply_processed[i] + "     昵称:" + reply_processed[i + 1]);
+                        }
                     }
                 }
                 catch (Exception ex){
@@ -161,9 +221,8 @@ public class Client extends JFrame{
         user_label.addMouseListener(new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                System.out.println(is_online);
-                if(!is_online) {
-                    client_login = new Client_Login(to_server, from_server);
+                if(is_online) {
+                    new Friend();
                 }
             }
             @Override
@@ -176,6 +235,37 @@ public class Client extends JFrame{
             public void mouseExited(MouseEvent e) {}
         });
 
+        set_label.addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if(!is_online){
+                    client_login = new Client_Login(to_server,from_server);
+                }
+                else{
+                    new set();
+                }
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+
+            }
+        });
         set_panel.add(jch_biying);
         set_panel.add(jch_jinshan);
         set_panel.add(jch_youdao);
@@ -183,6 +273,7 @@ public class Client extends JFrame{
         set_panel.add(user_label);
         set_panel.add(set_label);
 
+        set_panel.setBackground(color1);
     }
 
     private void init_up_panel(){
@@ -232,6 +323,7 @@ public class Client extends JFrame{
         search_panel.add(search_field);
         search_panel.add(search_label);
 
+        search_panel.setBackground(color1);
     }
 
     private void init_main_panel(){
@@ -246,10 +338,14 @@ public class Client extends JFrame{
 
         trans_field_first = new JTextArea();
         trans_field_first.setLineWrap(true);
-        trans_field_third = new JTextArea();
-        trans_field_third.setLineWrap(true);
+        trans_field_first.setEditable(false);
         trans_field_second = new JTextArea();
         trans_field_second.setLineWrap(true);
+        trans_field_second.setEditable(false);
+        trans_field_third = new JTextArea();
+        trans_field_third.setLineWrap(true);
+        trans_field_third.setEditable(false);
+
 
         first_up_panel = new JPanel(new FlowLayout(FlowLayout.CENTER,20,5));
         second_up_panel = new JPanel(new FlowLayout(FlowLayout.CENTER,20,5));
@@ -740,7 +836,6 @@ public class Client extends JFrame{
 
             sign_up.setOpaque(true);
             sign_up.setBackground(Color.GREEN);
-            //sign_up.setForeground(Color.WHITE);
 
             sign_in.addMouseListener(new MouseListener() {
                 @Override
@@ -901,6 +996,227 @@ public class Client extends JFrame{
                 System.out.println(e);
             }
         }
+    }
+
+    class Friend extends JFrame {
+        private JPanel friend_list_panel = new JPanel(new BorderLayout());
+        private JPanel list_up_panel = new JPanel(new FlowLayout(FlowLayout.CENTER,5,5));
+        private JPanel list_main_panel = new JPanel(new BorderLayout());
+        private JTextField friend_id = new JTextField(10);
+        private JButton search_friend_id_button = new JButton("add");
+        private JScrollPane scrollPane;
+        private JList<String> words_list = new JList<String>();
+        private DefaultListModel<String> defaultListModel = new DefaultListModel<String>();
+
+
+        private JPanel send_word_panel = new JPanel(new BorderLayout());
+        private JPanel send_word_up_panel = new JPanel(new FlowLayout(FlowLayout.CENTER,5,5));
+        private JTextField word = new JTextField(10);
+        private JButton send_word_button = new JButton("发送单词卡");
+        private JPanel send_main_panel = new JPanel(new BorderLayout());
+        /*
+        private JScrollPane scrollPane1;
+        private JList<String> words_list1 = new JList<String>();
+        private DefaultListModel<String> defaultListModel1 = new DefaultListModel<String>();
+        */
+
+        public Friend(){
+            init_list_up_panel();
+            init_list_main_panel();
+
+            init_send_word_up_panel();
+            init_search_main_panel();
+
+            friend_list_panel.add(list_up_panel,BorderLayout.NORTH);
+            friend_list_panel.add(list_main_panel,BorderLayout.CENTER);
+
+            send_word_panel.add(send_word_up_panel,BorderLayout.NORTH);
+            send_word_panel.add(send_main_panel,BorderLayout.CENTER);
+
+            this.setLayout(new GridLayout(1,2));
+            this.add(send_word_panel);
+            this.add(friend_list_panel);
+
+            this.setTitle("好友");
+            this.setSize(600,500);
+            this.setLocationRelativeTo(null);
+            this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            this.setVisible(true);
+        }
+
+        private void init_list_up_panel(){
+            list_up_panel.add(friend_id);
+            list_up_panel.add(search_friend_id_button);
+
+            friend_id.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    add_friend();
+                }
+            });
+            search_friend_id_button.addMouseListener(new MouseListener() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    add_friend();
+                }
+                @Override
+                public void mousePressed(MouseEvent e) {}
+                @Override
+                public void mouseReleased(MouseEvent e) {}
+                @Override
+                public void mouseEntered(MouseEvent e) {}
+                @Override
+                public void mouseExited(MouseEvent e) {}
+            });
+
+            list_up_panel.setBackground(color1);
+        }
+
+        private void init_list_main_panel(){
+            words_list.setModel(defaultListModel);
+            words_list.setFont(font1);
+
+            scrollPane = new JScrollPane(words_list);
+
+            defaultListModel.addElement("                            好友列表");
+
+            for(int i = 0;i < friends.size();++ i){
+                defaultListModel.addElement(friends.get(i));
+            }
+
+            list_main_panel.add(scrollPane,BorderLayout.CENTER);
+            list_main_panel.setBorder(line_border);
+        }
+
+        private void init_send_word_up_panel(){
+            send_word_up_panel.add(word);
+            send_word_up_panel.add(send_word_button);
+
+            word.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    send_word_card();
+                }
+            });
+            send_word_button.addMouseListener(new MouseListener() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    send_word_card();
+                }
+                @Override
+                public void mousePressed(MouseEvent e) {}
+                @Override
+                public void mouseReleased(MouseEvent e) {}
+                @Override
+                public void mouseEntered(MouseEvent e) {}
+                @Override
+                public void mouseExited(MouseEvent e) {}
+            });
+
+            send_word_up_panel.setBackground(color1);
+        }
+
+        private void init_search_main_panel(){
+            /*
+            words_list1.setModel(defaultListModel1);
+            words_list1.setFont(font2);
+
+            scrollPane1 = new JScrollPane(words_list1);
+
+            search_main_panel.add(scrollPane1,BorderLayout.CENTER);
+            search_main_panel.setBorder(line_border);
+            */
+        }
+
+        private void add_friend(){
+            if(friend_id.getText().equals(client_id)){
+                JOptionPane.showMessageDialog(null, "不能添加自己为好友！");
+                return;
+            }
+            String mes = new String("add:" + client_id + ":" + friend_id.getText());
+            try {
+                to_server.writeObject(mes);
+                to_server.flush();
+            }
+            catch (IOException ex){
+                System.out.println(ex);
+            }
+        }
+
+        private void send_word_card(){
+            if(words_list.getSelectedValue() == null || words_list.getSelectedIndex() == 0){
+                return;
+            }
+            String info = words_list.getSelectedValue();
+            String []info_processed = info.split("[: ]");
+            String mes = new String("wordcard:" + client_id + ":" + info_processed[1] + ":" + word.getText());
+            try {
+                to_server.writeObject(mes);
+                to_server.flush();
+            }
+            catch (IOException e){
+                System.out.println(e);
+            }
+        }
+
+    }
+
+    class set extends JFrame{
+        //private JPanel menu = new JPanel(new GridLayout(3,1));
+        private JButton change_info = new JButton("修改个人信息");
+        private JButton change_password = new JButton("修改密码");
+        private JButton log_out = new JButton("注销登录");
+
+        public set(){
+            init_buttons();
+            setLayout(new GridLayout(3,1,10,10));
+
+            this.add(change_info);
+            this.add(change_password);
+            this.add(log_out);
+
+            this.setTitle("用户中心");
+            this.setSize(150,200);
+            this.setLocationRelativeTo(null);
+            this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            this.setVisible(true);
+        }
+
+        private void init_buttons(){
+            log_out.addMouseListener(new MouseListener() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    String mes = new String("logout:" + client_id);
+                    client_id = null;
+                    client_name = null;
+                    is_online = false;
+                    set_title();
+
+                    JOptionPane.showMessageDialog(null,"注销成功");
+                    dispose();
+
+                    try {
+                        to_server.writeObject(mes);
+                        to_server.flush();
+                    }
+                    catch (IOException ex){
+                        System.out.println(ex);
+                    }
+                }
+                @Override
+                public void mousePressed(MouseEvent e) {}
+                @Override
+                public void mouseReleased(MouseEvent e) {}
+                @Override
+                public void mouseEntered(MouseEvent e) {}
+                @Override
+                public void mouseExited(MouseEvent e) {}
+            });
+        }
+    }
+
+    private void set_title(){
+        this.setTitle("Welcome");
     }
 
     public static void main(String[] args){
