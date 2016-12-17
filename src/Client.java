@@ -92,6 +92,8 @@ public class Client extends JFrame{
 
     ArrayList<String> friends = new ArrayList<String>();
 
+    String word_of_card;
+
     public Client(){
         init_search_panel();
         init_set_panel();
@@ -187,13 +189,30 @@ public class Client extends JFrame{
                         else if(reply_processed[1].equals("fail2")){
                             JOptionPane.showMessageDialog(null,"不能重复添加同一好友！");
                         }
+                        else if(reply_processed[1].equals("success")){
+                            System.out.println("here");
+                            JOptionPane.showMessageDialog(null,"发送成功");
+                        }
                     }
                     else if(reply_processed[0].equals("friends")){
-                        for(int i = 0;i < friends.size();++ i)
-                            friends.remove(i);
+                        friends.clear();
 
                         for(int i = 1;i < reply_processed.length - 1;i += 2){
                             friends.add("ID:" + reply_processed[i] + "     昵称:" + reply_processed[i + 1]);
+                        }
+                    }
+                    else if(reply_processed[0].equals("wordcard")){
+                        JOptionPane.showMessageDialog(null,"ID为 " + reply_processed[1] + " 昵称为 " + reply_processed[2] + "的用户向你发送了一张单词卡！");
+                        new Images(reply_processed[3]);
+                        word_of_card = new String(reply_processed[3] + ".png");
+                        System.out.println(word_of_card);
+                    }
+                    else if(reply_processed[0].equals("wordcardconfirm")){
+                        if(reply_processed[1].equals("success")){
+                            JOptionPane.showMessageDialog(null,"发送成功");
+                        }
+                        else{
+                            JOptionPane.showMessageDialog(null,reply_processed[3] + "不在线！无法发送！");
                         }
                     }
                 }
@@ -1013,7 +1032,7 @@ public class Client extends JFrame{
         private JPanel send_word_up_panel = new JPanel(new FlowLayout(FlowLayout.CENTER,5,5));
         private JTextField word = new JTextField(10);
         private JButton send_word_button = new JButton("发送单词卡");
-        private JPanel send_main_panel = new JPanel(new BorderLayout());
+        private JPanel send_main_panel ;
         /*
         private JScrollPane scrollPane1;
         private JList<String> words_list1 = new JList<String>();
@@ -1025,7 +1044,7 @@ public class Client extends JFrame{
             init_list_main_panel();
 
             init_send_word_up_panel();
-            init_search_main_panel();
+            init_send_main_panel();
 
             friend_list_panel.add(list_up_panel,BorderLayout.NORTH);
             friend_list_panel.add(list_main_panel,BorderLayout.CENTER);
@@ -1073,16 +1092,18 @@ public class Client extends JFrame{
         }
 
         private void init_list_main_panel(){
-            words_list.setModel(defaultListModel);
-            words_list.setFont(font1);
-
             scrollPane = new JScrollPane(words_list);
+
+            defaultListModel.removeAllElements();
 
             defaultListModel.addElement("                            好友列表");
 
             for(int i = 0;i < friends.size();++ i){
                 defaultListModel.addElement(friends.get(i));
             }
+
+            words_list.setModel(defaultListModel);
+            words_list.setFont(font1);
 
             list_main_panel.add(scrollPane,BorderLayout.CENTER);
             list_main_panel.setBorder(line_border);
@@ -1116,16 +1137,8 @@ public class Client extends JFrame{
             send_word_up_panel.setBackground(color1);
         }
 
-        private void init_search_main_panel(){
-            /*
-            words_list1.setModel(defaultListModel1);
-            words_list1.setFont(font2);
-
-            scrollPane1 = new JScrollPane(words_list1);
-
-            search_main_panel.add(scrollPane1,BorderLayout.CENTER);
-            search_main_panel.setBorder(line_border);
-            */
+        private void init_send_main_panel(){
+            send_main_panel = new ImagePanel();
         }
 
         private void add_friend(){
@@ -1163,7 +1176,7 @@ public class Client extends JFrame{
 
     class set extends JFrame{
         //private JPanel menu = new JPanel(new GridLayout(3,1));
-        private JButton change_info = new JButton("修改个人信息");
+        private JButton about_info = new JButton("关于");
         private JButton change_password = new JButton("修改密码");
         private JButton log_out = new JButton("注销登录");
 
@@ -1171,9 +1184,10 @@ public class Client extends JFrame{
             init_buttons();
             setLayout(new GridLayout(3,1,10,10));
 
-            this.add(change_info);
-            this.add(change_password);
             this.add(log_out);
+            this.add(change_password);
+            this.add(about_info);
+
 
             this.setTitle("用户中心");
             this.setSize(150,200);
@@ -1217,6 +1231,22 @@ public class Client extends JFrame{
 
     private void set_title(){
         this.setTitle("Welcome");
+    }
+
+    class ImagePanel extends JPanel{
+        ImageIcon icon;
+        Image img;
+
+        public ImagePanel(){
+            icon = new ImageIcon(word_of_card);
+            img = icon.getImage();
+            this.setBorder(line_border);
+        }
+
+        public void paintComponent(Graphics g){
+            super.paintComponent(g);
+            g.drawImage(img, 0, 0,this.getWidth(), this.getHeight(), this);
+        }
     }
 
     public static void main(String[] args){

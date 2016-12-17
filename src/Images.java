@@ -15,7 +15,7 @@ import java.net.*;
 
 public class Images {
     public static void main(String[] args) throws Exception{
-        Images images = new Images("hello");
+        Images images = new Images("but");
     }
 
     public Images(String word) {
