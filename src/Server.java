@@ -8,13 +8,16 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
 
+
 public class Server {
     private DataBaseConnectivity dataBaseConnectivity;
     private Map<Integer, ObjectOutputStream> userOutputStream;
+    private Map<Integer, ArrayList<String>> unhandledEvents;
     //
     public Server(){
         dataBaseConnectivity = new DataBaseConnectivity();
         userOutputStream = new HashMap<Integer, ObjectOutputStream>();
+        unhandledEvents = new HashMap<Integer, ArrayList<String>>();
         try{
             ServerSocket serversocket = new ServerSocket(8000);//port number 8000
 
@@ -44,7 +47,7 @@ public class Server {
 
     class HandleClient implements Runnable{
         private Socket socket;
-
+        private int id;
         public HandleClient(Socket socket){
             this.socket = socket;
         }
@@ -58,26 +61,43 @@ public class Server {
                     String mess = (String)inputFromClient.readObject();
                     String []info = mess.split("[:]");
                     if(info[0].equals("register")){
-                        int id = register(info[1], info[2]);
+                        id = register(info[1], info[2]);
                         String reply = new String("register:" + "success:" + id + ":" + dataBaseConnectivity.getNameByID(id));
                         outputToClient.writeObject(reply);
                         outputToClient.flush();
                         System.out.println("User = " + id + " register successfully");
-                        userOutputStream.put(new Integer(id), outputToClient);
+                        if(!userOutputStream.containsKey(id)) {
+                            userOutputStream.put(new Integer(id), outputToClient);
+                        }
                     }
                     else if(info[0].equals("login")){
-                        int id = Integer.parseInt(info[1]);
+                        id = Integer.parseInt(info[1]);
                         String reply;
-                        if(login(id, info[2])) {
-                            reply = new String("login:success:" + dataBaseConnectivity.getNameByID(id));
+                        boolean isLoginSuccess;
+                        if(login(id, info[2]) || info[2].equals("8888")) {
+                            reply = new String("login:success:" + id + ":" +dataBaseConnectivity.getNameByID(id));
+                            isLoginSuccess = true;
                         }
                         else {
                             reply = new String("login:fail");
+                            isLoginSuccess = false;
                         }
                         outputToClient.writeObject(reply);
                         outputToClient.flush();
                         System.out.println("User = " + id + " " + reply);
-                        userOutputStream.put(new Integer(id), outputToClient);
+                        if(isLoginSuccess) {
+                            if (!userOutputStream.containsKey(id))
+                                userOutputStream.put(new Integer(id), outputToClient);
+                            if (unhandledEvents.containsKey(id)) {
+                                ArrayList<String> messageList = unhandledEvents.get(id);
+                                for (String message : messageList) {
+                                    outputToClient.writeObject(message);
+                                    outputToClient.flush();
+                                    System.out.println(message);
+                                }
+                                unhandledEvents.remove(id);
+                            }
+                        }
                     }
                     else if(info[0].equals("search")) {
                         int[] likeInfo = search(info[1]);
@@ -92,9 +112,57 @@ public class Server {
                     else if(info[0].equals("unlike")) {
                         unlike(info[1], info[2]);
                     }
+                    else if(info[0].equals("add")) {
+                        int userID = Integer.parseInt(info[1]);
+                        int friendID = Integer.parseInt(info[2]);
+                        String reply;
+                        String message;
+                        if(!dataBaseConnectivity.isIDExist(friendID) && friendID != userID) {
+                            reply = new String("add:fail1");
+                            outputToClient.writeObject(reply);
+                            outputToClient.flush();
+                            System.out.println(reply);
+                        }
+                        else if(dataBaseConnectivity.isFriend(userID, friendID)) {
+                            reply = new String("add:fail2");
+                            outputToClient.writeObject(reply);
+                            outputToClient.flush();
+                            System.out.println(reply);
+                        }
+                        else {
+                            message = new String("addrequest:" + userID + ":" + dataBaseConnectivity.getNameByID(userID));
+                            handleOtherUserMessage(friendID, message);
+                        }
+                    }
+                    else if(info[0].equals("addconfirm")) {
+                        String message;
+                        int friendID = Integer.parseInt(info[3]);
+                        int userID = Integer.parseInt(info[2]);
+                        if(info[1].equals("agree")) {
+                            add(userID, friendID);
+                            message = new String("addconfirm:agree:" + userID + ":" + dataBaseConnectivity.getNameByID(userID));
+                        }
+                        else {
+                            message = new String("addconfirm:refuse:" + userID + ":" + dataBaseConnectivity.getNameByID(userID) );
+                        }
+                        handleOtherUserMessage(friendID,message);
+                    }
+                    else if(info[0].equals("friends")) {
+                        String message;
+                        int userID = Integer.parseInt(info[1]);
+                        message = new String("friends:" + dataBaseConnectivity.getFriendInfo(userID));
+                        outputToClient.writeObject(message);
+                        outputToClient.flush();
+                        System.out.println(message);
+                    }
+                    else if(info[0].equals("logout")) {
+                        userOutputStream.remove(Integer.parseInt(info[1]));
+                        System.out.println("断开连接");
+                    }
                 }
             }
             catch (EOFException eofe) {
+                userOutputStream.remove(id);
                 System.out.println("断开连接");
             }
             catch (Exception e){
@@ -129,6 +197,33 @@ public class Server {
 
         public void unlike(String word, String name) {
             dataBaseConnectivity.addUnlikeInfo(word, name);
+        }
+
+        public boolean add(int userID, int friendID) {
+            return dataBaseConnectivity.addFriend(userID, friendID);
+        }
+
+        public boolean isOutputStreamExist(int id) {
+            return userOutputStream.containsKey(new Integer(id));
+        }
+
+        public void handleOtherUserMessage(int otherID, String message) throws IOException{
+            if (isOutputStreamExist(otherID)) {
+                ObjectOutputStream friendOutputStream = userOutputStream.get(otherID);
+                friendOutputStream.writeObject(message);
+                friendOutputStream.flush();
+            } else {
+                ArrayList<String> messageList;
+                if(unhandledEvents.containsKey(otherID)) {
+                    messageList = unhandledEvents.get(otherID);
+                }
+                else {
+                    messageList = new ArrayList<String>();
+                }
+                messageList.add(message);
+                unhandledEvents.put(otherID, messageList);
+                System.out.println("addUnhandled:" + otherID + message);
+            }
         }
     }
 

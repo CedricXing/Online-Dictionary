@@ -9,10 +9,11 @@ import java.util.ConcurrentModificationException;
 public class DataBaseConnectivity {
     public static void main(String[] args){
         DataBaseConnectivity DBC = new DataBaseConnectivity();
+ //       DBC.deleteFriend(119,120);
 //        int[] test = DBC.SearchLikeInfo("get");
 //        System.out.println(test[0] + " " + test[1] + " " + test[2]);
 //        DBC.insertUserData(114,"wu","wu");
-//        System.out.println(DBC.distrubuteID());
+        System.out.println(DBC.getFriendInfo(119));
 //        DBC.addLikeInfo("xing", "youdao");
     }
 
@@ -199,6 +200,81 @@ public class DataBaseConnectivity {
             e.printStackTrace();
         }
         return result;
+    }
+
+    public boolean addFriend(int userID, int friendID) {
+        if(isIDExist(userID) && isIDExist(friendID)) {
+            try {
+                String sql = "insert into Friendship(userID,friendID)values (?, ?)";
+                PreparedStatement preparedStatement = connection.prepareStatement(sql);
+                preparedStatement.setInt(1, userID);
+                preparedStatement.setInt(2, friendID);
+                preparedStatement.executeUpdate();
+                String sql2 = "insert into Friendship(userID,friendID)values (?, ?)";
+                PreparedStatement preparedStatement2 = connection.prepareStatement(sql2);
+                preparedStatement2.setInt(1, friendID);
+                preparedStatement2.setInt(2, userID);
+                preparedStatement2.executeUpdate();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    public boolean isFriend(int userID, int friendID) {
+        try {
+            String sql = "select friendID from Friendship where userID = ?";
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setInt(1, userID);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            boolean isfriend;
+            while(resultSet.next()) {
+                if(resultSet.getInt(1) == friendID)
+                    return true;
+            }
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public String getFriendInfo(int userID) {
+        StringBuffer result = new StringBuffer();;
+        try {
+            String sql = "select friendID from Friendship where userID = ?";
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setInt(1, userID);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                result.append(Integer.toString(resultSet.getInt(1)) + ":" + getNameByID(resultSet.getInt(1)) + ":");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return result.toString();
+    }
+
+    public void deleteFriend(int userID, int friendID) {
+        try {
+            String sql1 = "delete from Friendship where userID = ? and friendID = ?";
+            PreparedStatement preparedStatement1 = connection.prepareStatement(sql1);
+            preparedStatement1.setInt(1, userID);
+            preparedStatement1.setInt(2, friendID);
+            preparedStatement1.executeUpdate();
+            String sql2 = "delete from Friendship where userID = ? and friendID = ?";
+            PreparedStatement preparedStatement2 = connection.prepareStatement(sql2);
+            preparedStatement2.setInt(1, friendID);
+            preparedStatement2.setInt(2, userID);
+            preparedStatement2.executeUpdate();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }

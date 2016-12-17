@@ -7,50 +7,95 @@ import java.awt.image.*;
 import java.awt.font.*;
 import java.awt.geom.*;
 import javax.imageio.*;
+import java.util.ArrayList;
+import sun.awt.*;
+import javafx.scene.*;
+import java.net.*;
+
 
 public class Images {
-    public static void main(String[] args) {
-        int width = 600;
-        int height = 400;
-        String s = "Hello";
+    public static void main(String[] args) throws Exception{
+        Images images = new Images("hello");
+    }
 
+    public Images(String word) {
+        drawImage(word);
+    }
 
+    public void drawImage(String word) {
+        String s = word;
+        OnlineTranslation onlineTranslation = new OnlineTranslation();
+        ArrayList<String> youdaoTrans = mySplit(onlineTranslation.youdaoTranslation(s));
+        ArrayList<String> icibaTrans = mySplit(onlineTranslation.icibaTranslation(s));
+        ArrayList<String> bingTrans = mySplit(onlineTranslation.bingTranslation(s));
+        File file = new File(word + ".png");
 
-        File file = new File("image.jpg");
-
-        Font font = new Font("Arial", Font.PLAIN, 30);
+        Font font = new Font("Arial", Font.PLAIN, 50);
         //创建一个画布
-        BufferedImage bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-        //获取画布的画笔
-        Graphics2D g2 = (Graphics2D)bi.getGraphics();
-        g2.setFont(font);
-
-        //开始绘图
-        g2.setBackground(Color.WHITE);
-        g2.clearRect(0, 0, width, height);
-//        g2.setPaint(new Color(0,0,255));
-//        g2.fillRect(0, 0, 100, 10);
-//        g2.setPaint(new Color(253,2,0));
-//        g2.fillRect(0, 10, 100, 10);
-        g2.setPaint(Color.black);
-
-
-        FontRenderContext context = g2.getFontRenderContext();
-        Rectangle2D bounds = font.getStringBounds(s, context);
-        double x = (width - bounds.getWidth()) / 2;
-        double y = (height - bounds.getHeight()) / 2;
-        double ascent = -bounds.getY();
-        double baseY = y + ascent;
-
-        //绘制字符串
-        g2.drawString(s, (int)x, 30);
-
+        BufferedImage bi;
+        Graphics2D g2;
         try {
-            //将生成的图片保存为jpg格式的文件。ImageIO支持jpg、png、gif等格式
-            ImageIO.write(bi, "jpg", file);
-        } catch (IOException e) {
-            System.out.println("生成图片出错........");
+             bi = ImageIO.read(new File("bgp.png"));
+             g2 = (Graphics2D)bi.getGraphics();
+            g2.setFont(font);
+
+
+            g2.setPaint(Color.black);
+
+
+            FontRenderContext context = g2.getFontRenderContext();
+            Rectangle2D bounds = font.getStringBounds(s, context);
+            double x = (bi.getWidth() - bounds.getWidth()) / 2;
+            double y = (bi.getHeight() - bounds.getHeight()) / 2;
+            double ascent = -bounds.getY();
+            double baseY = y + ascent;
+
+            //绘制字符串
+            g2.drawString(s, (int)x, 50);
+            g2.setFont(new Font("Tahoma", Font.BOLD, 30));
+            g2.drawString("youdao:",10, 150);
+            for(int i = 0; i < youdaoTrans.size(); i++) {
+                String temp = youdaoTrans.get(i);
+                g2.drawString(temp, 10, 200 + i * 50);
+            }
+            int base = 200 + youdaoTrans.size()*50 + 50;
+            g2.drawString("iciba:",10, base);
+            for(int i = 0; i < icibaTrans.size(); i++) {
+                String temp = icibaTrans.get(i);
+                g2.drawString(temp, 10, base + 50 + i * 50);
+            }
+            int base2 = base + 50 + icibaTrans.size()*50 + 50;
+            g2.drawString("bing:",10, base2);
+            for(int i = 0; i < bingTrans.size(); i++) {
+                String temp = bingTrans.get(i);
+                g2.drawString(temp, 10, base2 + 50 + i * 50);
+            }
+            ImageIO.write(bi, "png", file);
+        }
+        catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public ArrayList<String> mySplit(ArrayList<String> str) {
+        ArrayList<String> res = new ArrayList<>();
+        for(int i = 0; i < str.size(); i++) {
+            int length = str.get(i).length();
+            if(length <= 40) {
+                res.add(str.get(i));
+                continue;
+            }
+            int base = 0;
+            String part;
+            while(length > 40) {
+                part = str.get(i).substring(base, base + 40);
+                res.add(part);
+                base += 40;
+                length -= 40;
+            }
+            part = str.get(i).substring(base, base + length);
+            res.add(part);
+        }
+        return res;
     }
 }
