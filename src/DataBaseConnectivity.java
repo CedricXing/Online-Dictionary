@@ -277,4 +277,17 @@ public class DataBaseConnectivity {
         }
     }
 
+    public void changePassword(int userID, String newPassword) {
+        try {
+            String sql = "update Users set password = ? where ID = ?";
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1, newPassword);
+            preparedStatement.setInt(2, userID);
+            preparedStatement.executeUpdate();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 }

@@ -132,6 +132,9 @@ public class Server {
                         else {
                             message = new String("addrequest:" + userID + ":" + dataBaseConnectivity.getNameByID(userID));
                             handleOtherUserMessage(friendID, message);
+                            reply = new String("add:success");
+                            outputToClient.writeObject(reply);
+                            outputToClient.flush();
                         }
                     }
                     else if(info[0].equals("addconfirm")) {
@@ -158,6 +161,27 @@ public class Server {
                     else if(info[0].equals("logout")) {
                         userOutputStream.remove(Integer.parseInt(info[1]));
                         System.out.println("断开连接");
+                    }
+                    else if(info[0].equals("wordcard")) {
+                        int aID = Integer.parseInt(info[1]);
+                        int bID = Integer.parseInt(info[2]);
+                        String message;
+                        String reply;
+                        if(userOutputStream.containsKey(bID)) {
+                            message = new String("wordcard:" + info[1] + ":" + dataBaseConnectivity.getNameByID(aID) + ":" + info[3]);
+                            ObjectOutputStream friendOutputStream = userOutputStream.get(bID);
+                            friendOutputStream.writeObject(message);
+                            friendOutputStream.flush();
+                            reply = new String("wordcardconfirm:success:" + info[2] + ":" + dataBaseConnectivity.getNameByID(bID));
+                            outputToClient.writeObject(reply);
+                            outputToClient.flush();
+                        }
+                        else {
+                            reply = new String("wordcardconfirm:fail:" + info[2] + ":" + dataBaseConnectivity.getNameByID(bID));
+                            outputToClient.writeObject(reply);
+                            outputToClient.flush();
+                        }
+
                     }
                 }
             }
