@@ -4,6 +4,7 @@
 import java.io.IOException;
 import java.sql.*;
 import java.util.ConcurrentModificationException;
+import java.util.*;
 
 
 public class DataBaseConnectivity {
@@ -243,20 +244,20 @@ public class DataBaseConnectivity {
         return false;
     }
 
-    public String getFriendInfo(int userID) {
-        StringBuffer result = new StringBuffer();;
+    public Map<Integer,String> getFriendInfo(int userID) {
+        Map<Integer,String> result = new TreeMap<>();
         try {
             String sql = "select friendID from Friendship where userID = ?";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, userID);
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
-                result.append(Integer.toString(resultSet.getInt(1)) + ":" + getNameByID(resultSet.getInt(1)) + ":");
+                result.put(resultSet.getInt(1),getNameByID(resultSet.getInt(1)));
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return result.toString();
+        return result;
     }
 
     public void deleteFriend(int userID, int friendID) {

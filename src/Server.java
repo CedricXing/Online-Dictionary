@@ -151,9 +151,17 @@ public class Server {
                         handleOtherUserMessage(friendID,message);
                     }
                     else if(info[0].equals("friends")) {
-                        String message;
+                        String message = new String("friends");
                         int userID = Integer.parseInt(info[1]);
-                        message = new String("friends:" + dataBaseConnectivity.getFriendInfo(userID));
+                        Map<Integer, String> friendInfo = dataBaseConnectivity.getFriendInfo(userID);
+                        Set<Map.Entry<Integer, String>> entrySet = friendInfo.entrySet();
+                        for(Map.Entry<Integer, String> entry: entrySet) {
+                            message = message + ":" + entry.getKey().toString() + ":" + entry.getValue().toString() + ":";
+                            if(isOnline(entry.getKey()))
+                                message = message + "1";
+                            else
+                                message = message + "0";
+                        }
                         outputToClient.writeObject(message);
                         outputToClient.flush();
                         System.out.println(message);
@@ -248,6 +256,13 @@ public class Server {
                 unhandledEvents.put(otherID, messageList);
                 System.out.println("addUnhandled:" + otherID + message);
             }
+        }
+
+        public boolean isOnline(int ID) {
+            if(userOutputStream.containsKey(ID))
+                return true;
+            else
+                return false;
         }
     }
 

@@ -8,13 +8,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class OnlineTranslation {
-//    public static void main(String[] args) {
-//        OnlineTranslation onlineTranslation = new OnlineTranslation();
-//
-//        ArrayList<String> arrayList = onlineTranslation.icibaTranslation("get");
-//        for(int i = 0; i < arrayList.size(); i++)
-//            System.out.println(arrayList.get(i));
-//    }
+    public static void main(String[] args) {
+        OnlineTranslation onlineTranslation = new OnlineTranslation();
+
+        ArrayList<String> arrayList = onlineTranslation.icibaTranslation("get osfdn");
+        for(int i = 0; i < arrayList.size(); i++)
+            System.out.println(arrayList.get(i));
+    }
     //constructor
     public OnlineTranslation() {
     }
@@ -130,11 +130,21 @@ public class OnlineTranslation {
 
     //bing translation
     public ArrayList<String> bingTranslation(String word) {
-        String urlString = "http://cn.bing.com/dict/search?q=" + word + "&go=搜索&qs=n&form=Z9LH5&pq=hello&sc=7-5&sp=-1&sk=&cvid=0D404E73D43746D98E60093F005DC018";
-        URL url = null;
-        java.util.Scanner input = null;
         ArrayList<String> list = new ArrayList<String>();
+        StringBuffer words = new StringBuffer();
+        for(int i = 0; i < word.length(); i++) {
+            if(word.charAt(i) == ' ') {
+                words.append("+");
+            }
+            else {
+                words.append(word.charAt(i));
+            }
+        }
+        String word3 = words.toString();
         try {
+            String urlString = "http://cn.bing.com/dict/search?q=" + word3 + "&go=搜索&qs=n&form=Z9LH5&pq=hello&sc=7-5&sp=-1&sk=&cvid=0D404E73D43746D98E60093F005DC018";
+            URL url = null;
+            java.util.Scanner input = null;
             url = new URL(urlString);
             input = new java.util.Scanner(url.openStream());
             Pattern p = Pattern.compile(".*<meta name=\"description\" content=\"必应词典为您提供" + word + "的释义，(.*)\" /><meta content.*");
@@ -164,7 +174,7 @@ public class OnlineTranslation {
             ex.printStackTrace();
         }
         catch(IOException e) {
-            e.printStackTrace();
+            System.out.println("Not found");
         }
         return list;
     }
