@@ -71,6 +71,7 @@ public class Server {
                         if(!userOutputStream.containsKey(id)) {
                             userOutputStream.put(new Integer(id), outputToClient);
                         }
+                        sendFriendsInfo();
                     }
                     //处理用户登录信息
                     else if(info[0].equals("login")){

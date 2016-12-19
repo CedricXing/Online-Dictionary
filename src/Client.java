@@ -114,7 +114,7 @@ public class Client extends JFrame{
         onlineTranslation = new OnlineTranslation();
 
         try{
-            Socket socket = new Socket("114.212.131.80",8000);
+            Socket socket = new Socket("192.168.1.104",8000);
             to_server = new ObjectOutputStream(socket.getOutputStream());
             from_server = new ObjectInputStream(socket.getInputStream());
             while(true){
