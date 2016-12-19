@@ -195,7 +195,6 @@ public class Client extends JFrame{
                             JOptionPane.showMessageDialog(null,"不能重复添加同一好友！");
                         }
                         else if(reply_processed[1].equals("success")){
-                            System.out.println("here");
                             JOptionPane.showMessageDialog(null,"发送成功");
                         }
                     }
