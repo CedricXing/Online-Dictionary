@@ -13,7 +13,7 @@ public class Server {
     private DataBaseConnectivity dataBaseConnectivity;
     private Map<Integer, ObjectOutputStream> userOutputStream;
     private Map<Integer, ArrayList<String>> unhandledEvents;
-    //
+    //服务器端
     public Server(){
         dataBaseConnectivity = new DataBaseConnectivity();
         userOutputStream = new HashMap<Integer, ObjectOutputStream>();
@@ -45,6 +45,7 @@ public class Server {
         new Server();
     }
 
+    //用户处理线程
     class HandleClient implements Runnable{
         private Socket socket;
         private int id;
@@ -60,6 +61,7 @@ public class Server {
                 while(true){
                     String mess = (String)inputFromClient.readObject();
                     String []info = mess.split("[:]");
+                    //处理用户注册信息
                     if(info[0].equals("register")){
                         id = register(info[1], info[2]);
                         String reply = new String("register:" + "success:" + id + ":" + dataBaseConnectivity.getNameByID(id));
@@ -70,6 +72,7 @@ public class Server {
                             userOutputStream.put(new Integer(id), outputToClient);
                         }
                     }
+                    //处理用户登录信息
                     else if(info[0].equals("login")){
                         id = Integer.parseInt(info[1]);
                         String reply;
@@ -97,8 +100,10 @@ public class Server {
                                 }
                                 unhandledEvents.remove(id);
                             }
+                            sendFriendsInfo();
                         }
                     }
+                    //查询点赞数
                     else if(info[0].equals("search")) {
                         int[] likeInfo = search(info[1]);
                         String reply = new String(info[0] + ":" + likeInfo[0] + ":" +likeInfo[1] + ":" + likeInfo[2]);
@@ -106,9 +111,11 @@ public class Server {
                         outputToClient.flush();
                         System.out.println("word: " + likeInfo[0] + " " + likeInfo[1] + " " +likeInfo[2]);
                     }
+                    //点赞
                     else if(info[0].equals("like")) {
                         like(info[1], info[2]);
                     }
+                    //取消赞
                     else if(info[0].equals("unlike")) {
                         unlike(info[1], info[2]);
                     }
@@ -137,6 +144,7 @@ public class Server {
                             outputToClient.flush();
                         }
                     }
+                    //加好友确认
                     else if(info[0].equals("addconfirm")) {
                         String message;
                         int friendID = Integer.parseInt(info[3]);
@@ -150,6 +158,7 @@ public class Server {
                         }
                         handleOtherUserMessage(friendID,message);
                     }
+                    //获取好友
                     else if(info[0].equals("friends")) {
                         String message = new String("friends");
                         int userID = Integer.parseInt(info[1]);
@@ -166,10 +175,13 @@ public class Server {
                         outputToClient.flush();
                         System.out.println(message);
                     }
+                    //登出
                     else if(info[0].equals("logout")) {
                         userOutputStream.remove(Integer.parseInt(info[1]));
+                        sendFriendsInfo();
                         System.out.println("断开连接");
                     }
+                    //发送单词卡
                     else if(info[0].equals("wordcard")) {
                         int aID = Integer.parseInt(info[1]);
                         int bID = Integer.parseInt(info[2]);
@@ -189,12 +201,17 @@ public class Server {
                             outputToClient.writeObject(reply);
                             outputToClient.flush();
                         }
-
+                    }
+                    else if(info[0].equals("notfound")) {
+                        String message = new String("search:0:0:0");
+                        outputToClient.writeObject(message);
+                        outputToClient.flush();
                     }
                 }
             }
             catch (EOFException eofe) {
                 userOutputStream.remove(id);
+                sendFriendsInfo();
                 System.out.println("断开连接");
             }
             catch (Exception e){
@@ -212,7 +229,6 @@ public class Server {
             if(!dataBaseConnectivity.isIDExist(id))
                 return false;
             String truePassword = dataBaseConnectivity.getPasswordByID(id);
-//        System.out.println(truePassword);
             if(!truePassword.equals(password))
                 return false;
             return true;
@@ -263,6 +279,32 @@ public class Server {
                 return true;
             else
                 return false;
+        }
+
+        public void sendFriendsInfo(){
+            Set<Map.Entry<Integer, ObjectOutputStream>> entrySet = userOutputStream.entrySet();
+            for(Map.Entry<Integer, ObjectOutputStream> entry: entrySet) {
+                String message = new String("friends");
+                int userID = entry.getKey();
+                Map<Integer, String> friendInfo = dataBaseConnectivity.getFriendInfo(userID);
+                Set<Map.Entry<Integer, String>> entrySet2 = friendInfo.entrySet();
+                for(Map.Entry<Integer, String> entry2: entrySet2) {
+                    message = message + ":" + entry2.getKey().toString() + ":" + entry2.getValue().toString() + ":";
+                    if(isOnline(entry2.getKey()))
+                        message = message + "1";
+                    else
+                        message = message + "0";
+                }
+                ObjectOutputStream output = entry.getValue();
+                try {
+                    output.writeObject(message);
+                    output.flush();
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
+                System.out.println(message);
+            }
         }
     }
 

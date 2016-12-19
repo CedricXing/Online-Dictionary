@@ -12,7 +12,7 @@ import sun.awt.*;
 import javafx.scene.*;
 import java.net.*;
 
-
+//生成单词卡
 public class Images {
     public static void main(String[] args) throws Exception{
         Images images = new Images("a");
@@ -77,6 +77,7 @@ public class Images {
         }
     }
 
+    //切分搜索结果，每行30个字符
     public ArrayList<String> mySplit(ArrayList<String> str) {
         ArrayList<String> res = new ArrayList<>();
         for(int i = 0; i < str.size(); i++) {

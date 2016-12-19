@@ -92,6 +92,7 @@ public class DataBaseConnectivity {
         return null;
     }
 
+    //distrubute user ID,new ID = maxID + 1
     public int distrubuteID() {
         try {
             String sql = "select ID from Users order by ID desc";
@@ -106,6 +107,7 @@ public class DataBaseConnectivity {
         return -1;
     }
 
+    //judge whether ID exists
     public boolean isIDExist(int id) {
         try {
             String sql = "select password from Users where ID = ?";
@@ -121,6 +123,7 @@ public class DataBaseConnectivity {
         return false;
     }
 
+    // add like information
     public void addLikeInfo(String word, String name) {
         try {
             String sql = new String();
@@ -142,6 +145,7 @@ public class DataBaseConnectivity {
         }
     }
 
+    // add unlike information
     public void addUnlikeInfo(String word, String name) {
         try {
             String sql = new String();
@@ -163,6 +167,7 @@ public class DataBaseConnectivity {
         }
     }
 
+    //insert word information
     public void insertWordInfo(String word) {
         try {
             String sql = "insert into Words(word, youdao, iciba, bing)" + "values (?,?,?,?)";
@@ -178,6 +183,7 @@ public class DataBaseConnectivity {
         }
     }
 
+    //search like information
     public int[] SearchLikeInfo(String word) {
         int[] result = new int[3];
         try {
@@ -203,6 +209,7 @@ public class DataBaseConnectivity {
         return result;
     }
 
+    //add friend
     public boolean addFriend(int userID, int friendID) {
         if(isIDExist(userID) && isIDExist(friendID)) {
             try {
@@ -226,6 +233,7 @@ public class DataBaseConnectivity {
         }
     }
 
+    //judge whether friendID is userID's friend
     public boolean isFriend(int userID, int friendID) {
         try {
             String sql = "select friendID from Friendship where userID = ?";
@@ -244,6 +252,7 @@ public class DataBaseConnectivity {
         return false;
     }
 
+    //get friend information
     public Map<Integer,String> getFriendInfo(int userID) {
         Map<Integer,String> result = new TreeMap<>();
         try {
@@ -260,6 +269,7 @@ public class DataBaseConnectivity {
         return result;
     }
 
+    //delete friends information (not used)
     public void deleteFriend(int userID, int friendID) {
         try {
             String sql1 = "delete from Friendship where userID = ? and friendID = ?";
@@ -278,6 +288,7 @@ public class DataBaseConnectivity {
         }
     }
 
+    //change password(not used)
     public void changePassword(int userID, String newPassword) {
         try {
             String sql = "update Users set password = ? where ID = ?";
