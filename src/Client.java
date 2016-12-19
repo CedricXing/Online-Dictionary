@@ -12,6 +12,7 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.border.*;
 
+//客户端的主类
 public class Client extends JFrame{
     private String client_name = new String("");
     private String client_id = new String("");
@@ -94,6 +95,7 @@ public class Client extends JFrame{
 
     String word_of_card;
 
+    //客户端的构造函数
     public Client(){
         init_search_panel();
         init_set_panel();
@@ -139,9 +141,12 @@ public class Client extends JFrame{
                             client_name = new String(reply_processed[3]);
                             this.setTitle("Welcome " + client_name);
                             client_login.dispose();
+
+                            /*
                             String mes = new String("friends:" + client_id);
                             to_server.writeObject(mes);
                             to_server.flush();
+                            */
                         }
                         else {
                             JOptionPane.showMessageDialog(null, "ID or password Wrong!");
@@ -197,15 +202,18 @@ public class Client extends JFrame{
                     else if(reply_processed[0].equals("friends")){
                         friends.clear();
 
-                        for(int i = 1;i < reply_processed.length - 1;i += 2){
-                            friends.add("ID:" + reply_processed[i] + "     昵称:" + reply_processed[i + 1]);
+                        for(int i = 1;i < reply_processed.length - 1;i += 3){
+                            if(reply_processed[i + 2].equals("1"))
+                                friends.add("在线    ID:" + reply_processed[i] + "     昵称:" + reply_processed[i + 1]);
+                            else if(reply_processed[i + 2].equals("0"))
+                                friends.add("离线    ID:" + reply_processed[i] + "     昵称:" + reply_processed[i + 1]);
                         }
+
                     }
                     else if(reply_processed[0].equals("wordcard")){
                         JOptionPane.showMessageDialog(null,"ID为 " + reply_processed[1] + " 昵称为 " + reply_processed[2] + "的用户向你发送了一张单词卡！");
                         new Images(reply_processed[3]);
                         word_of_card = new String(reply_processed[3] + ".png");
-                        System.out.println(word_of_card);
                     }
                     else if(reply_processed[0].equals("wordcardconfirm")){
                         if(reply_processed[1].equals("success")){
@@ -227,6 +235,7 @@ public class Client extends JFrame{
         }
     }
 
+    //初始化 set_panel
     private void init_set_panel(){
         jch_biying = new JCheckBox("Bing");
         jch_jinshan = new JCheckBox("JinShan");
@@ -303,6 +312,7 @@ public class Client extends JFrame{
 
     }
 
+    //初始化search_panel
     private void init_search_panel(){
         search_panel = new JPanel(new FlowLayout(FlowLayout.CENTER,5,10));
 
@@ -345,6 +355,7 @@ public class Client extends JFrame{
         search_panel.setBackground(color1);
     }
 
+    //初始化main_panel
     private void init_main_panel(){
         main_panel = new JPanel();
         main_panel.setLayout(new BorderLayout(0,0));
@@ -473,12 +484,47 @@ public class Client extends JFrame{
         main_panel.setBorder(line_border);
     }
 
+    //开始搜索
     public void search_begin(){
+        String str = search_field.getText();
+        if(str.equals(""))
+            return;
+        for(int i = 0;i < str.length();++ i){
+            if(!(str.charAt(i) == ' ' || (str.charAt(i) >= 'a' && str.charAt(i) <= 'z') || (str.charAt(i) >= 'A' && str.charAt(i) <= 'Z'))) {
+                JOptionPane.showMessageDialog(null, "请输入英文单词!");
+                return;
+            }
+        }
         trans_youdao = onlineTranslation.youdaoTranslation(search_field.getText());
         trans_biying = onlineTranslation.bingTranslation(search_field.getText());
         trans_jinshan = onlineTranslation.icibaTranslation(search_field.getText());
 
+        boolean flag = false;
+        if(trans_youdao.size() == 0){
+            trans_youdao.add("未查询到该单词");
+            flag = true;
+        }
+        if(trans_biying.size() == 0){
+            trans_biying.add("未查询到该单词");
+            flag =  true;
+        }
+        if(trans_jinshan.size() == 0){
+            trans_jinshan.add("未查询到该单词");
+            flag = true;
+        }
         current_word = search_field.getText();
+
+        if(flag) {
+            String mes = new String("notfound");
+            try {
+                to_server.writeObject(mes);
+                to_server.flush();
+            }
+            catch(IOException e){
+                System.out.println(e);
+            }
+            return;
+        }
 
         try{
             String word_mes = new String("search:" + search_field.getText());
@@ -491,6 +537,7 @@ public class Client extends JFrame{
 
     }
 
+    //将搜索单词的结果展示在Panel中
     private void display_search_result(String []reply){
         label_first.setText("");
         like_num_first.setText("");
@@ -691,6 +738,7 @@ public class Client extends JFrame{
         }
     }
 
+    //用户点赞的消息处理函数
     private void user_liked(int index){
         String buf;
         if(index == 1) {
@@ -721,6 +769,7 @@ public class Client extends JFrame{
         }
     }
 
+    //用户取消赞的消息处理函数
     private void user_liked_canceled(int index){
         String buf;
         if(index == 1) {
@@ -751,7 +800,7 @@ public class Client extends JFrame{
         }
     }
 
-
+    //客户端登录类
     class Client_Login extends JFrame{
         private String client_name;//User name
         private String client_password;//User password
@@ -787,10 +836,10 @@ public class Client extends JFrame{
         ObjectInputStream from_server;
         ObjectOutputStream to_server;
 
+        //内部类 其实构造函数可以不传参
         public Client_Login(ObjectOutputStream to_server,ObjectInputStream from_server){
             this.to_server = to_server;
             this.from_server = from_server;
-
 
             init_head_pic();
             init_login();
@@ -809,6 +858,7 @@ public class Client extends JFrame{
 
         }
 
+        //初始化一些图片
         private void init_head_pic(){
             head_pic = new JPanel(new FlowLayout(FlowLayout.CENTER,0,15));
 
@@ -817,6 +867,7 @@ public class Client extends JFrame{
             head_pic.add(head_port);
         }
 
+        //初始化登录选项
         private void init_login(){
             login = new JPanel(new GridLayout(2,1,0,15));
 
@@ -841,6 +892,7 @@ public class Client extends JFrame{
 
         }
 
+        //初始化选项区
         private void init_options(){
             options = new JPanel(new FlowLayout(FlowLayout.CENTER,80,20));
 
@@ -859,7 +911,7 @@ public class Client extends JFrame{
             sign_in.addMouseListener(new MouseListener() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
-
+                    login();
                 }
 
                 @Override
@@ -943,6 +995,9 @@ public class Client extends JFrame{
                     if(user_password.getText().equals(password_confirmed.getText())){
                         register();
                     }
+                    else {
+                        JOptionPane.showMessageDialog(null,"两次密码不一致！");
+                    }
                 }
 
                 @Override
@@ -961,18 +1016,7 @@ public class Client extends JFrame{
 
         }
 
-        private void client_start(){
-            try{
-                String mess = new String("hello");
-                to_server.writeObject(mess);
-                to_server.flush();
-            }
-            catch (IOException e){
-                System.out.println(e);
-            }
-
-        }
-
+        //添加监听事件
         private void password_listener(){
             user_password.addActionListener(new ActionListener() {
                 @Override
@@ -982,6 +1026,7 @@ public class Client extends JFrame{
             });
         }
 
+        //添加监听事件
         private void password_confirmed_listener(){
             password_confirmed.addActionListener(new ActionListener() {
                 @Override
@@ -989,10 +1034,14 @@ public class Client extends JFrame{
                     if(user_password.getText().equals(password_confirmed.getText())){
                         register();
                     }
+                    else {
+                        JOptionPane.showMessageDialog(null,"两次密码不一致！");
+                    }
                 }
             });
         }
 
+        //注册事件
         private void register(){
             try{
                 String register_mess = new String("register:" + user_name.getText() + ":" + user_password.getText());
@@ -1005,6 +1054,7 @@ public class Client extends JFrame{
             }
         }
 
+        //登录事件
         private void login(){
             try{
                 String login_mess = new String("login:" + user_name.getText() + ":" + user_password.getText());
@@ -1017,6 +1067,7 @@ public class Client extends JFrame{
         }
     }
 
+    //好友类
     class Friend extends JFrame {
         private JPanel friend_list_panel = new JPanel(new BorderLayout());
         private JPanel list_up_panel = new JPanel(new FlowLayout(FlowLayout.CENTER,5,5));
@@ -1040,6 +1091,16 @@ public class Client extends JFrame{
         */
 
         public Friend(){
+            /*
+            try {
+                String mes = new String("friends:" + client_id);
+                to_server.writeObject(mes);
+                to_server.flush();
+            }
+            catch(IOException e){
+                System.out.println(e);
+            }
+            */
             init_list_up_panel();
             init_list_main_panel();
 
@@ -1091,6 +1152,7 @@ public class Client extends JFrame{
             list_up_panel.setBackground(color1);
         }
 
+        //初始化好友列表
         private void init_list_main_panel(){
             scrollPane = new JScrollPane(words_list);
 
@@ -1109,6 +1171,7 @@ public class Client extends JFrame{
             list_main_panel.setBorder(line_border);
         }
 
+        //初始化发送单词卡类
         private void init_send_word_up_panel(){
             send_word_up_panel.add(word);
             send_word_up_panel.add(send_word_button);
@@ -1141,6 +1204,7 @@ public class Client extends JFrame{
             send_main_panel = new ImagePanel();
         }
 
+        //添加好友事件
         private void add_friend(){
             if(friend_id.getText().equals(client_id)){
                 JOptionPane.showMessageDialog(null, "不能添加自己为好友！");
@@ -1156,13 +1220,14 @@ public class Client extends JFrame{
             }
         }
 
+        //发送单词卡事件
         private void send_word_card(){
             if(words_list.getSelectedValue() == null || words_list.getSelectedIndex() == 0){
                 return;
             }
             String info = words_list.getSelectedValue();
             String []info_processed = info.split("[: ]");
-            String mes = new String("wordcard:" + client_id + ":" + info_processed[1] + ":" + word.getText());
+            String mes = new String("wordcard:" + client_id + ":" + info_processed[5] + ":" + word.getText());
             try {
                 to_server.writeObject(mes);
                 to_server.flush();
@@ -1174,6 +1239,7 @@ public class Client extends JFrame{
 
     }
 
+    //初始化设置类
     class set extends JFrame{
         //private JPanel menu = new JPanel(new GridLayout(3,1));
         private JButton about_info = new JButton("关于");
@@ -1196,6 +1262,7 @@ public class Client extends JFrame{
             this.setVisible(true);
         }
 
+        //初始化按钮
         private void init_buttons(){
             log_out.addMouseListener(new MouseListener() {
                 @Override
@@ -1233,6 +1300,7 @@ public class Client extends JFrame{
         this.setTitle("Welcome");
     }
 
+    //初始化一个图片显示Panel
     class ImagePanel extends JPanel{
         ImageIcon icon;
         Image img;
